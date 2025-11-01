@@ -1,0 +1,32 @@
+{
+	"name": "work-time-tracker",
+	"version": "1.0.0",
+	"scripts": {
+		"build": "tsc",
+		"dev": "ts-node src/cli.ts",
+		"build:dev": "npm run build && npm install -g ."
+	},
+	"bin": {
+		"work-time-tracker": "./dist/cli.js",
+		"wtt": "./dist/cli.js"
+	},
+	"keywords": [],
+	"author": "Igor Koneshov",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"chalk": "^4.1.2",
+		"cli-table3": "^0.6.5",
+		"commander": "^14.0.2",
+		"dayjs": "^1.11.19",
+		"fs-extra": "^11.3.2",
+		"inquirer": "^12.10.0",
+		"simple-git": "^3.29.0"
+	},
+	"devDependencies": {
+		"@types/fs-extra": "^11.0.4",
+		"@types/node": "^24.9.2",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.9.3"
+	}
+}
