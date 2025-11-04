@@ -7,13 +7,14 @@ import { startDetached } from './actions/start-detached';
 import { kill } from './actions/kill';
 import { list } from './actions/list';
 import { stop } from './actions/stop';
+import pkg from '../package.json';
 
 const program = new Command();
 
 program
 	.name('work-time-tracker')
 	.description('cli утилита, которая собирает затраченное время по дням в каждой ветке с момента запуска')
-	.version('1.0.0');
+	.version(pkg.version);
 
 program
 	.command('start')
