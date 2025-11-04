@@ -4,7 +4,8 @@
 	"scripts": {
 		"build": "tsc",
 		"dev": "ts-node src/cli.ts",
-		"build:dev": "npm run build && npm install -g ."
+		"build:dev": "npm run build && npm install -g .",
+		"publish": "npm publish --access public"
 	},
 	"bin": {
 		"work-time-tracker": "./dist/cli.js",
