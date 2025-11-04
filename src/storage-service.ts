@@ -29,11 +29,11 @@ export class StorageService {
 		}
 	}
 
-	static loadWTTData(): WTTData {
+	static async loadWTTData(): Promise<WTTData> {
 		const path = this.getGlobalFilePath();
 
 		if (!this.hasWTTStorage()) {
-			this.createWTTStorage();
+			await this.createWTTStorage();
 		}
 
 		const rawData = fs.readFileSync(path, 'utf-8');
@@ -42,7 +42,7 @@ export class StorageService {
 
 	private static async saveWTTData(data: WTTData) {
 		if (!this.hasWTTStorage()) {
-			this.createWTTStorage();
+			await this.createWTTStorage();
 		}
 
 		const filePath = this.getGlobalFilePath();
@@ -60,7 +60,7 @@ export class StorageService {
 		branchName: string;
 		seconds: number;
 	}) {
-		const data = this.loadWTTData();
+		const data = await this.loadWTTData();
 
 		if (!data.projects[projectName]) {
 			data.projects[projectName] = {};

@@ -6,7 +6,7 @@ import os from 'node:os';
 export function startDetached() {
 	const projectKey = process.cwd().split('/').pop() || 'unknown-project';
 	const pidFile = path.join(os.homedir(), `.wtt.${projectKey}.pid`);
-	const logFile = path.join(process.cwd(), '.wtt.log');
+	const logFile = path.join(os.homedir(), '.wtt.log');
 
 	// Убиваем предыдущий процесс
 	if (fs.existsSync(pidFile)) {
@@ -32,5 +32,5 @@ export function startDetached() {
 	fs.writeFileSync(pidFile, String(child.pid));
 
 	child.unref();
-	console.log(`🚀 Work Time Tracker запущен в фоне для проекта "${projectKey}". Логи: ${logFile} (PID: ${child.pid})`);
+	console.log(`🚀 Work Time Tracker запущен в фоне для проекта "${projectKey}" (PID: ${child.pid})`);
 }
