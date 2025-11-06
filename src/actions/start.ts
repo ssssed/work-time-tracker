@@ -48,18 +48,7 @@ export const start = async () => {
 	}, 4000);
 
 	process.on('SIGINT', async () => {
-		const spentSeconds = (Date.now() - start) / 1000;
-
-		await StorageService.addWTTEntry({
-			projectName,
-			date: today,
-			branchName: currentBranch,
-			seconds: spentSeconds
-		});
-
-		console.log(
-			chalk.green(`\n⏹ Отслеживание остановлено. Сохранено ${(spentSeconds / 60).toFixed(1)} минут в ${currentBranch}`)
-		);
+		console.log(chalk.green(`\n⏹ Отслеживание остановлено.`));
 		process.exit();
 	});
 };

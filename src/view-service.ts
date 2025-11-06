@@ -3,11 +3,13 @@ import Table from 'cli-table3';
 import path from 'path';
 import { WTTData } from './storage-service';
 import { plural } from './utils';
+import dayjs from 'dayjs';
 
 export interface ViewOptions {
 	all?: boolean; // по умолчанию false
 	projectPath?: string; // фильтр по конкретному проекту
 	date?: string; // фильтр по конкретной дате DD-MM-YYYY
+	today?: boolean;
 }
 
 export class ViewService {
@@ -27,7 +29,7 @@ export class ViewService {
 		for (const [projName, projectData] of Object.entries(projects)) {
 			console.log(chalk.bold(`📂 ${projName}`));
 
-			const dates = this.filterDates(projectData, options.date);
+			const dates = this.filterDates(projectData, options.date, options.today);
 
 			for (const date of Object.keys(dates).sort()) {
 				console.log(` ├─ 📅 ${date}`);
@@ -59,7 +61,7 @@ export class ViewService {
 		});
 
 		for (const [projName, projectData] of Object.entries(projects)) {
-			const dates = this.filterDates(projectData, options.date);
+			const dates = this.filterDates(projectData, options.date, options.today);
 
 			for (const date of Object.keys(dates).sort()) {
 				const branches = dates[date];
@@ -101,8 +103,14 @@ export class ViewService {
 		return Object.fromEntries(Object.entries(projects).filter(([projName]) => projName === projectName));
 	}
 
-	private static filterDates(projectData: WTTData['projects'][string], filterDate?: string) {
-		if (!filterDate) return projectData; // если дата не указана — возвращаем все даты
+	private static filterDates(projectData: WTTData['projects'][string], filterDate?: string, today?: boolean) {
+		if (today) {
+			const todayDate = dayjs().format('DD-MM-YYYY');
+
+			return projectData[todayDate] ? { [todayDate]: projectData[todayDate] } : {};
+		}
+
+		if (!filterDate) return projectData;
 		if (projectData[filterDate]) return { [filterDate]: projectData[filterDate] };
 		return {};
 	}
