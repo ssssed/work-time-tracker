@@ -15,7 +15,9 @@ export type WTTData = {
 };
 
 export class StorageService {
-	private static FILE_NAME = '.wtt.json';
+	private static DIR_NAME = 'wtt';
+	private static FILE_NAME = 'wtt.json';
+	private static LOG_FILE_NAME = '.wtt.log';
 
 	static hasWTTStorage(): boolean {
 		const path = this.getGlobalFilePath();
@@ -23,6 +25,8 @@ export class StorageService {
 	}
 
 	static async createWTTStorage() {
+		this.init();
+
 		if (!fs.existsSync(this.getGlobalFilePath())) {
 			const initialData = this.getDefaultData();
 			await this.saveWTTData(initialData);
@@ -41,12 +45,13 @@ export class StorageService {
 	}
 
 	private static async saveWTTData(data: WTTData) {
-		if (!this.hasWTTStorage()) {
-			await this.createWTTStorage();
-		}
+		try {
+			const filePath = this.getGlobalFilePath();
 
-		const filePath = this.getGlobalFilePath();
-		await fs.writeFile(filePath, JSON.stringify(data), 'utf-8');
+			await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+		} catch (error: any) {
+			throw new Error(`Failed to save WTT data: ${error?.message || error}`);
+		}
 	}
 
 	static async addWTTEntry({
@@ -88,20 +93,24 @@ export class StorageService {
 	}
 
 	static exitWTTProcesses(projectName?: string) {
-		const homeDir = os.homedir();
-		const files = fs.readdirSync(homeDir);
+		const dirPath = this.getGlobalDirPath();
+
+		if (!fs.existsSync(dirPath)) return;
+
+		const files = fs.readdirSync(dirPath);
+		const pidRegex = this.getPidFileRegex();
 
 		if (projectName) {
-			const pidFile = `.wtt.${projectName}.pid`;
-			if (files.includes(pidFile)) {
-				fs.removeSync(path.join(homeDir, pidFile));
+			const pidPath = this.getGlobalPidFilePath(projectName);
+			if (fs.existsSync(pidPath)) {
+				fs.removeSync(pidPath);
 			}
 			return;
 		}
 
 		files.forEach(file => {
-			if (file.match(/^\.wtt\..+\.pid$/)) {
-				fs.removeSync(path.join(homeDir, file));
+			if (pidRegex.test(file)) {
+				fs.removeSync(path.join(dirPath, file));
 			}
 		});
 	}
@@ -116,8 +125,39 @@ export class StorageService {
 		});
 	}
 
+	static init() {
+		const path = this.getGlobalDirPath();
+
+		if (fs.existsSync(path)) {
+			return;
+		}
+
+		fs.mkdirSync(this.getGlobalDirPath());
+		fs.writeFileSync(this.getGlobalLogFilePath(), '', 'utf-8');
+	}
+
 	private static getGlobalFilePath() {
-		return path.join(os.homedir(), this.FILE_NAME);
+		return path.join(this.getGlobalDirPath(), this.FILE_NAME);
+	}
+
+	private static getGlobalDirPath() {
+		return path.join(os.homedir(), this.DIR_NAME);
+	}
+
+	private static getPidFileName(projectName: string) {
+		return `.wtt.${projectName}.pid`;
+	}
+
+	private static getPidFileRegex(): RegExp {
+		return /^\.wtt\..+\.pid$/;
+	}
+
+	static getGlobalPidFilePath(projectName: string) {
+		return path.join(this.getGlobalDirPath(), this.getPidFileName(projectName));
+	}
+
+	static getGlobalLogFilePath() {
+		return path.join(this.getGlobalDirPath(), this.LOG_FILE_NAME);
 	}
 
 	private static getDefaultData(): WTTData {

@@ -22,7 +22,6 @@ export const start = async () => {
 		seconds: 0
 	});
 
-	let start = Date.now();
 	let lastSaved = Date.now();
 
 	console.log(chalk.green(`🚀 Запуск отслеживания времени работы! Текущая ветка: ${currentBranch}`));

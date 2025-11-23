@@ -1,12 +1,14 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
-import os from 'node:os';
+import { StorageService } from '../storage-service';
 
-export function startDetached() {
+export async function startDetached() {
 	const projectKey = process.cwd().split('/').pop() || 'unknown-project';
-	const pidFile = path.join(os.homedir(), `.wtt.${projectKey}.pid`);
-	const logFile = path.join(os.homedir(), '.wtt.log');
+	const pidFile = StorageService.getGlobalPidFilePath(projectKey);
+	const logFile = StorageService.getGlobalLogFilePath();
+
+	StorageService.init();
 
 	// Убиваем предыдущий процесс
 	if (fs.existsSync(pidFile)) {
@@ -19,9 +21,9 @@ export function startDetached() {
 		}
 	}
 
+	const scriptPath = path.join(__dirname, '..', '..', 'dist', 'demons', 'start.js');
 	const out = fs.openSync(logFile, 'a');
 	const err = fs.openSync(logFile, 'a');
-	const scriptPath = path.join(__dirname, '..', '..', 'dist', 'demons', 'start.js');
 
 	const child = spawn('node', [scriptPath], {
 		detached: true,
