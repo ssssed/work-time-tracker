@@ -1,15 +1,11 @@
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import os from 'os';
 import inquirer from 'inquirer';
 import { StorageService } from '../storage-service';
-import path from 'path';
 
 export const stop = async () => {
 	try {
-		const homeDir = os.homedir();
-		const files = fs.readdirSync(homeDir);
-		const pidFiles = files.filter(f => f.startsWith('.wtt.') && f.endsWith('.pid'));
+		const pidFiles = StorageService.getPidFiles();
 
 		if (pidFiles.length === 0) {
 			console.log(chalk.yellow('Нет активных процессов WTT.'));
@@ -18,7 +14,7 @@ export const stop = async () => {
 
 		// Собираем список проектов и PID
 		const processes = pidFiles.map(file => {
-			const pidPath = path.join(homeDir, file);
+			const pidPath = StorageService.getGlobalPidFilePath(file);
 			const pid = fs.readFileSync(pidPath, 'utf-8').trim();
 			const projectName = file.replace(/\.wtt\.|\.pid/g, '');
 			return { pid, projectName, file };

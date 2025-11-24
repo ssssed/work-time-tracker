@@ -5,7 +5,7 @@ import { StorageService } from '../storage-service';
 
 export async function startDetached() {
 	const projectKey = process.cwd().split('/').pop() || 'unknown-project';
-	const pidFile = StorageService.getGlobalPidFilePath(projectKey);
+	const pidFile = StorageService.getGlobalPidFilePathByProjectName(projectKey);
 	const logFile = StorageService.getGlobalLogFilePath();
 
 	StorageService.init();
@@ -31,7 +31,7 @@ export async function startDetached() {
 		env: { ...process.env, WTT_PROJECT_NAME: projectKey } // передаем проект в демон
 	});
 
-	fs.writeFileSync(pidFile, String(child.pid));
+	StorageService.writePidFile(pidFile, child.pid);
 
 	child.unref();
 	console.log(`🚀 Work Time Tracker запущен в фоне для проекта "${projectKey}" (PID: ${child.pid})`);

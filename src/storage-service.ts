@@ -101,7 +101,7 @@ export class StorageService {
 		const pidRegex = this.getPidFileRegex();
 
 		if (projectName) {
-			const pidPath = this.getGlobalPidFilePath(projectName);
+			const pidPath = this.getGlobalPidFilePathByProjectName(projectName);
 			if (fs.existsSync(pidPath)) {
 				fs.removeSync(pidPath);
 			}
@@ -136,6 +136,12 @@ export class StorageService {
 		fs.writeFileSync(this.getGlobalLogFilePath(), '', 'utf-8');
 	}
 
+	static writePidFile(path: string, pid?: number) {
+		if (!pid) return;
+
+		fs.writeFileSync(path, String(pid), 'utf-8');
+	}
+
 	private static getGlobalFilePath() {
 		return path.join(this.getGlobalDirPath(), this.FILE_NAME);
 	}
@@ -152,12 +158,24 @@ export class StorageService {
 		return /^\.wtt\..+\.pid$/;
 	}
 
-	static getGlobalPidFilePath(projectName: string) {
+	static getGlobalPidFilePathByProjectName(projectName: string) {
 		return path.join(this.getGlobalDirPath(), this.getPidFileName(projectName));
+	}
+
+	static getGlobalPidFilePath(file: string) {
+		return path.join(this.getGlobalDirPath(), file);
 	}
 
 	static getGlobalLogFilePath() {
 		return path.join(this.getGlobalDirPath(), this.LOG_FILE_NAME);
+	}
+
+	static getPidFiles() {
+		const homeDir = this.getGlobalDirPath();
+		const files = fs.readdirSync(homeDir);
+		const pidFiles = files.filter(f => f.startsWith('.wtt.') && f.endsWith('.pid'));
+
+		return pidFiles;
 	}
 
 	private static getDefaultData(): WTTData {
