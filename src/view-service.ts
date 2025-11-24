@@ -4,12 +4,15 @@ import path from 'path';
 import { WTTData } from './storage-service';
 import { plural } from './utils';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
 
 export interface ViewOptions {
 	all?: boolean; // по умолчанию false
 	projectPath?: string; // фильтр по конкретному проекту
 	date?: string; // фильтр по конкретной дате DD-MM-YYYY
 	today?: boolean;
+	period?: string; // период DD-MM-YYYY:DD-MM-YYYY
 }
 
 export class ViewService {
@@ -29,7 +32,7 @@ export class ViewService {
 		for (const [projName, projectData] of Object.entries(projects)) {
 			console.log(chalk.bold(`📂 ${projName}`));
 
-			const dates = this.filterDates(projectData, options.date, options.today);
+			const dates = this.filterDates(projectData, options);
 
 			for (const date of Object.keys(dates).sort()) {
 				console.log(` ├─ 📅 ${date}`);
@@ -37,7 +40,7 @@ export class ViewService {
 
 				for (const [branch, seconds] of Object.entries(branches)) {
 					if (branch === 'init' && seconds === 0) continue;
-					const timeStr = this.formatSeconds(seconds);
+					const timeStr = this.formatSeconds(seconds as unknown as number);
 					console.log(`   └─ ${branch}  ${timeStr}`);
 				}
 			}
@@ -61,13 +64,13 @@ export class ViewService {
 		});
 
 		for (const [projName, projectData] of Object.entries(projects)) {
-			const dates = this.filterDates(projectData, options.date, options.today);
+			const dates = this.filterDates(projectData, options);
 
 			for (const date of Object.keys(dates).sort()) {
 				const branches = dates[date];
 				for (const [branch, seconds] of Object.entries(branches)) {
 					if (branch === 'init' && seconds === 0) continue;
-					table.push([projName, date, branch, this.formatSeconds(seconds)]);
+					table.push([projName, date, branch, this.formatSeconds(seconds as unknown as number)]);
 				}
 			}
 		}
@@ -103,15 +106,62 @@ export class ViewService {
 		return Object.fromEntries(Object.entries(projects).filter(([projName]) => projName === projectName));
 	}
 
-	private static filterDates(projectData: WTTData['projects'][string], filterDate?: string, today?: boolean) {
-		if (today) {
+	private static filterDates(projectData: WTTData['projects'][string], options: ViewOptions) {
+		if (options.period) {
+			return this.filterByPeriod(projectData, options.period);
+		}
+
+		if (options.today) {
 			const todayDate = dayjs().format('DD-MM-YYYY');
 
 			return projectData[todayDate] ? { [todayDate]: projectData[todayDate] } : {};
 		}
 
-		if (!filterDate) return projectData;
-		if (projectData[filterDate]) return { [filterDate]: projectData[filterDate] };
+		if (!options.date) return projectData;
+		if (projectData[options.date]) return { [options.date]: projectData[options.date] };
 		return {};
+	}
+
+	private static filterByPeriod(projectData: WTTData['projects'][string], period: string) {
+		// период может быть: 01-11-2025:07-11-2025
+		// или 01-11:07-11 (год = текущий)
+		const [rawFrom, rawTo] = period.split(':');
+
+		if (!rawFrom || !rawTo) {
+			console.log(chalk.red('❌ Неверный формат --period. Используй: DD-MM-YYYY:DD-MM-YYYY'));
+			return {};
+		}
+
+		const currentYear = dayjs().year();
+
+		const normalize = (dateStr: string) => {
+			if (dateStr.split('-').length === 2) {
+				return `${dateStr}-${currentYear}`;
+			}
+			return dateStr;
+		};
+
+		const from = dayjs(normalize(rawFrom), 'DD-MM-YYYY');
+		const to = dayjs(normalize(rawTo), 'DD-MM-YYYY');
+
+		if (!from.isValid() || !to.isValid()) {
+			console.log(chalk.red('❌ Неверная дата в периоде.'));
+			return {};
+		}
+		if (to.isBefore(from)) {
+			console.log(chalk.red('❌ Конец периода раньше начала.'));
+			return {};
+		}
+
+		const result: Record<string, any> = {};
+
+		for (const dateStr of Object.keys(projectData)) {
+			const date = dayjs(dateStr, 'DD-MM-YYYY');
+			if (date.isValid() && (date.isAfter(from) || date.isSame(from)) && (date.isBefore(to) || date.isSame(to))) {
+				result[dateStr] = projectData[dateStr];
+			}
+		}
+
+		return result;
 	}
 }

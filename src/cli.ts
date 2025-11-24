@@ -30,6 +30,7 @@ program
 	.option('-d, --date <dd-mm-yyyy>', 'показывает статистику за определенную дату')
 	.option('-a, --all', 'показывает данные по всем проектам')
 	.option('-t, --table', 'показывает данные в виде таблицы')
+	.option('-p, --period <from:to>', 'Период дат DD-MM-YYYY:DD-MM-YYYY')
 	.option('--today', 'показывает данные за сегодня')
 	.action(view);
 
