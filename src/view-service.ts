@@ -5,6 +5,7 @@ import { WTTData } from './storage-service';
 import { plural } from './utils';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { WTTProcess } from './process-selector-service';
 dayjs.extend(customParseFormat);
 
 export interface ViewOptions {
@@ -165,14 +166,8 @@ export class ViewService {
 		return result;
 	}
 
-	static renderActiveProcesses(
-		processes: {
-			pid: string;
-			args: string;
-			raw: string;
-		}[]
-	) {
-		console.log(chalk.bold.cyan('\n⚡ Active WTT Processes:\n'));
+	static renderActiveProcesses(processes: WTTProcess[]) {
+		console.log(chalk.bold.cyan('\n⚡ Active WTT Processes:'));
 
 		if (!processes.length) {
 			console.log(chalk.yellow('— Нет активных процессов —\n'));
@@ -180,16 +175,13 @@ export class ViewService {
 		}
 
 		const table = new Table({
-			head: ['PID', 'Project', 'Command'],
-			colWidths: [10, 20, 60],
+			head: ['PID', 'Project'],
+			colWidths: [10, 20],
 			style: { head: ['green'] }
 		});
 
 		for (const proc of processes) {
-			const match = proc.args.match(/\.wtt\.([a-zA-Z0-9_-]+)\.pid/);
-			const project = match ? match[1] : 'unknown';
-
-			table.push([proc.pid, project, proc.args]);
+			table.push([proc.pid, proc.projectName]);
 		}
 
 		console.log(table.toString());

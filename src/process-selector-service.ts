@@ -67,26 +67,40 @@ export class ProcessSelectorService {
 		}
 	}
 
-	static getActiveProcesses(wttRootPath: string) {
+	static getActiveProcesses(pidFiles: string[] = []): WTTProcess[] {
 		let output: string;
-
 		try {
-			output = execSync(`ps aux | grep [s]tart.js`, { encoding: 'utf8' });
+			output = execSync(`ps -axo pid,command`, { encoding: 'utf8' });
 		} catch {
 			return [];
 		}
 
-		const lines = output.split('\n').filter(Boolean);
+		const lines = output.split('\n').slice(1).filter(Boolean);
 
-		const processes = lines
+		const processes: WTTProcess[] = lines
 			.map(line => {
-				const parts = line.trim().split(/\s+/);
-				const pid = parts[1];
-				const args = parts.slice(10).join(' ');
+				const match = line.trim().match(/^(\d+)\s+(.+)$/);
+				if (!match) return null;
 
-				return { pid, args, raw: line };
+				const pid = Number(match[1]);
+				const file = match[2];
+
+				// определяем projectName через PID-файлы
+				let projectName = 'unknown';
+				for (const pidFile of pidFiles) {
+					try {
+						const pidInFile = fs.readFileSync(StorageService.getGlobalPidFilePath(pidFile), 'utf8').trim();
+
+						if (Number(pidInFile) === pid) {
+							projectName = StorageService.getPidFileName(pidFile);
+							break;
+						}
+					} catch {}
+				}
+
+				return { pid, projectName, file };
 			})
-			.filter(proc => proc.args.includes(wttRootPath) && proc.args.includes('start.js'));
+			.filter((proc): proc is WTTProcess => proc !== null && proc.file.includes('start.js'));
 
 		return processes;
 	}

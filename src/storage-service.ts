@@ -161,7 +161,7 @@ export class StorageService {
 		return path.join(os.homedir(), this.DIR_NAME);
 	}
 
-	private static getPidFileName(projectName: string) {
+	private static getPidFilePath(projectName: string) {
 		return `.wtt.${projectName}.pid`;
 	}
 
@@ -169,8 +169,13 @@ export class StorageService {
 		return /^\.wtt\..+\.pid$/;
 	}
 
+	static getPidFileName(file: string) {
+		const projectName = file.split('.').at(-2);
+		return projectName || 'unknown';
+	}
+
 	static getGlobalPidFilePathByProjectName(projectName: string) {
-		return path.join(this.getGlobalDirPath(), this.getPidFileName(projectName));
+		return path.join(this.getGlobalDirPath(), this.getPidFilePath(projectName));
 	}
 
 	static getGlobalPidFilePath(file: string) {

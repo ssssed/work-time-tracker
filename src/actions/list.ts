@@ -4,8 +4,8 @@ import { StorageService } from '../storage-service';
 import { ViewService } from '../view-service';
 
 export const list = () => {
-	const wttRoot = StorageService.getGlobalDirPath();
-	const processes = ProcessSelectorService.getActiveProcesses(wttRoot);
+	const pidFiles = StorageService.getPidFiles();
+	const processes = ProcessSelectorService.getActiveProcesses(pidFiles);
 
 	ViewService.renderActiveProcesses(processes);
 };
