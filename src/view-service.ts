@@ -164,4 +164,35 @@ export class ViewService {
 
 		return result;
 	}
+
+	static renderActiveProcesses(
+		processes: {
+			pid: string;
+			args: string;
+			raw: string;
+		}[]
+	) {
+		console.log(chalk.bold.cyan('\n⚡ Active WTT Processes:\n'));
+
+		if (!processes.length) {
+			console.log(chalk.yellow('— Нет активных процессов —\n'));
+			return;
+		}
+
+		const table = new Table({
+			head: ['PID', 'Project', 'Command'],
+			colWidths: [10, 20, 60],
+			style: { head: ['green'] }
+		});
+
+		for (const proc of processes) {
+			const match = proc.args.match(/\.wtt\.([a-zA-Z0-9_-]+)\.pid/);
+			const project = match ? match[1] : 'unknown';
+
+			table.push([proc.pid, project, proc.args]);
+		}
+
+		console.log(table.toString());
+		console.log();
+	}
 }

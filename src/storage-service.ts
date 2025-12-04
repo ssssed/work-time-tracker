@@ -157,7 +157,7 @@ export class StorageService {
 		return path.join(this.getGlobalDirPath(), this.FILE_NAME);
 	}
 
-	private static getGlobalDirPath() {
+	static getGlobalDirPath() {
 		return path.join(os.homedir(), this.DIR_NAME);
 	}
 

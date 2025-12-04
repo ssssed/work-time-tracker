@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import inquirer from 'inquirer';
 import { StorageService } from './storage-service';
+import { execSync } from 'node:child_process';
 
 export type WTTProcess = {
 	pid: number;
@@ -64,5 +65,29 @@ export class ProcessSelectorService {
 		} catch (err: any) {
 			if (err.code !== 'ESRCH') throw err;
 		}
+	}
+
+	static getActiveProcesses(wttRootPath: string) {
+		let output: string;
+
+		try {
+			output = execSync(`ps aux | grep [s]tart.js`, { encoding: 'utf8' });
+		} catch {
+			return [];
+		}
+
+		const lines = output.split('\n').filter(Boolean);
+
+		const processes = lines
+			.map(line => {
+				const parts = line.trim().split(/\s+/);
+				const pid = parts[1];
+				const args = parts.slice(10).join(' ');
+
+				return { pid, args, raw: line };
+			})
+			.filter(proc => proc.args.includes(wttRootPath) && proc.args.includes('start.js'));
+
+		return processes;
 	}
 }
