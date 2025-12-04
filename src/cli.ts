@@ -22,7 +22,12 @@ program
 	.option('--foreground', 'не запускать в фоне, блокировать терминал', false)
 	.action(args => (args.foreground ? start() : startDetached()));
 
-program.command('stop').description('останавливает процесс отслеживания для выбранного проекта').action(stop);
+program
+	.command('stop')
+	.description('останавливает процесс отслеживания для выбранного проекта')
+	.option('-p, --pid <pid>', 'останавливает процесс по указанному PID')
+	.option('-n, --name <project_name>', 'останавливает процесс по указанному project name')
+	.action(stop);
 
 program
 	.command('view')
