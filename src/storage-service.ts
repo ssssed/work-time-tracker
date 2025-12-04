@@ -45,12 +45,23 @@ export class StorageService {
 	}
 
 	private static async saveWTTData(data: WTTData) {
-		try {
-			const filePath = this.getGlobalFilePath();
+		const filePath = this.getGlobalFilePath();
+		const tmpPath = filePath + '.tmp';
 
-			await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+		try {
+			const json = JSON.stringify(data, null, 2);
+
+			await fs.writeFile(tmpPath, json, 'utf-8');
+
+			await fs.rename(tmpPath, filePath);
 		} catch (error: any) {
-			throw new Error(`Failed to save WTT data: ${error?.message || error}`);
+			try {
+				if (await fs.pathExists(tmpPath)) {
+					await fs.remove(tmpPath);
+				}
+			} catch {}
+
+			throw new Error(`Failed to save WTT data atomically: ${error?.message || error}`);
 		}
 	}
 
