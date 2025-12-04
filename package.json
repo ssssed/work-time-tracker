@@ -1,6 +1,6 @@
 {
 	"name": "work-time-tracker",
-	"version": "2.2.1",
+	"version": "2.2.2",
 	"scripts": {
 		"build": "tsc",
 		"dev": "ts-node src/cli.ts",
